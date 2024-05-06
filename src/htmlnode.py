@@ -1,9 +1,14 @@
 class HTMLNode:
-    def __init__(self, tag: str =None, value: str =None, children: list =None, props: dict =None):
+    def __init__(self,
+                    tag: str =None,
+                    value: str =None,
+                    children: list =None,
+                    props: dict =None):
         self.tag = tag
         self.value = value
         self.children = children
         self.props = props
+
     def __repr__(self) -> str:
         return f"HTMLNode(tag={self.tag}, value={self.value}, children={self.children}, props={self.props})"
 
@@ -18,3 +23,21 @@ class HTMLNode:
             for key, value in self.props.items():
                 result += f' {key}="{value}"'
         return result
+
+class LeafNode(HTMLNode):
+    def __init__(self, value, tag=None, props=None):
+        super().__init__(tag=tag, value=value, props=props)  #the super() init inputs need to match that of the parent, not the child. or it will swap things out of order. i had value and tag swapped to match the child. so the code results were swapping. 
+
+    def to_html(self):
+        if self.tag is None:
+            return self.value
+        elif self.value is None or self.value == "":
+            raise ValueError
+        else:
+            # this code was a huge pain, i could have just did this all in one line like below, but i kept trying to make and empty string and append things as they came. dont forget stuff like the parent functions. this example code uses the prop_to_html function. 
+            # Making this code 10X easier and easier to work with. I dont even wanna remmeber what i was trying. 
+            props_html = self.props_to_html()
+            if props_html:  # Check if props_html is not empty before appending
+                return f"<{self.tag}{props_html}>{self.value}</{self.tag}>"   
+            else:
+                return f"<{self.tag}>{self.value}</{self.tag}>"
