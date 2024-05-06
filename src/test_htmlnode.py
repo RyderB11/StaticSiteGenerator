@@ -1,5 +1,5 @@
 import unittest
-from htmlnode import HTMLNode, LeafNode
+from htmlnode import HTMLNode, LeafNode, ParentNode
 
 class TestHTMLNodePropsToHTML(unittest.TestCase):
     def test_props_to_html(self):
@@ -58,6 +58,65 @@ class testLeafNodeToHTML(unittest.TestCase):
             node.to_html()
 
 
-# This makes the test run if you execute the script directly.
+class testParentNodeToHTML(unittest.TestCase):
+    def test_parentnode_working(self):
+        node = ParentNode(
+            "p",
+            [
+                LeafNode("Bold text","b" ),
+                LeafNode("Normal text",None),
+                LeafNode("italic text","i"),
+                LeafNode("Normal text",None),
+            ],
+        )
+
+        node.to_html()
+        expected_result = '<p><b>Bold text</b>Normal text<i>italic text</i>Normal text</p>'
+        self.assertEqual(node.to_html(), expected_result)
+
+    def test_tag_empty(self):
+        with self.assertRaises(ValueError):
+            node = ParentNode(
+                None,
+                [
+                    LeafNode("Bold text","b" ),
+                    LeafNode("Normal text",None),
+                    LeafNode("italic text","i"),
+                    LeafNode("Normal text",None),
+                ],
+            )
+
+            node.to_html()
+
+
+    def test_no_children(self):
+        with self.assertRaises(ValueError):
+            node = ParentNode(
+                None,
+                [
+                ],
+            )
+
+            node.to_html()
+
+    def test_deep_nesting(self):
+        # Leaf nodes for content
+        leaf1 = LeafNode("This is a paragraph inside the section.", "p")
+        leaf2 = LeafNode("This is a paragraph inside the article.", "p")
+        
+        # nest parent nodes
+        section = ParentNode("section", [leaf1])
+        article = ParentNode("article", [leaf2])
+        
+        # top-level parent that contains both section and article
+        div = ParentNode("div", [section, article])
+        
+        # Expected HTML output
+        expected_html = '<div><section><p>This is a paragraph inside the section.</p></section><article><p>This is a paragraph inside the article.</p></article></div>'
+        
+        # Assert
+        self.assertEqual(div.to_html(), expected_html)
+
+
 if __name__ == "__main__":
     unittest.main()
