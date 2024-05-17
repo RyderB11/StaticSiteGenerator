@@ -1,0 +1,73 @@
+import unittest
+from markdown_to_html import markdown_to_html_node
+from htmlnode import HTMLNode
+
+class TestMarkdownToHtmlNode(unittest.TestCase):
+
+    def test_heading_conversion(self):
+        markdown = "# Heading 1"
+        html_node = markdown_to_html_node(markdown)
+        expected_html = "<div><h1>Heading 1</h1></div>"
+        self.assertEqual(html_node.to_html(), expected_html)
+
+    def test_code_block_conversion(self):
+        markdown = "```\nprint('Hello, world!')\n```"
+        html_node = markdown_to_html_node(markdown)
+        expected_html = "<div><pre><code>print('Hello, world!')</code></pre></div>"
+        self.assertEqual(html_node.to_html(), expected_html)
+
+    def test_quote_block_conversion(self):
+        markdown = "> This is a quote."
+        html_node = markdown_to_html_node(markdown)
+        expected_html = "<div><blockquote>This is a quote.</blockquote></div>"
+        self.assertEqual(html_node.to_html(), expected_html)
+
+    def test_unordered_list_conversion(self):
+        markdown = "* Item 1\n* Item 2"
+        html_node = markdown_to_html_node(markdown)
+        expected_html = "<div><ul><li>Item 1</li><li>Item 2</li></ul></div>"
+        self.assertEqual(html_node.to_html(), expected_html)
+
+    def test_ordered_list_conversion(self):
+        markdown = "1. Item 1\n2. Item 2"
+        html_node = markdown_to_html_node(markdown)
+        expected_html = "<div><ol><li>Item 1</li><li>Item 2</li></ol></div>"
+        self.assertEqual(html_node.to_html(), expected_html)
+
+    def test_paragraph_conversion(self):
+        markdown = "This is a paragraph."
+        html_node = markdown_to_html_node(markdown)
+        expected_html = "<div><p>This is a paragraph.</p></div>"
+        self.assertEqual(html_node.to_html(), expected_html)
+
+    def test_mixed_content_conversion(self):
+        markdown = """
+        # Heading 1
+
+        This is a paragraph.
+
+
+        > This is a quote.
+
+        * Item 1
+        * Item 2
+
+        1. Item 1
+        2. Item 2
+        """.strip()
+
+        html_node = markdown_to_html_node(markdown)
+        expected_html = (
+            "<div>"
+            "<h1>Heading 1</h1>"
+            "<p>This is a paragraph.</p>"
+            "<pre><code>print(&quot;Hello, world!&quot;)</code></pre>"
+            "<blockquote>This is a quote.</blockquote>"
+            "<ul><li>Item 1</li><li>Item 2</li></ul>"
+            "<ol><li>Item 1</li><li>Item 2</li></ol>"
+            "</div>"
+        )
+        self.assertEqual(html_node.to_html(), expected_html)
+
+if __name__ == '__main__':
+    unittest.main()

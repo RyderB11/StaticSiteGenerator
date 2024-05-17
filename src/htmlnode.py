@@ -6,14 +6,21 @@ class HTMLNode:
                     props: dict =None):
         self.tag = tag
         self.value = value
-        self.children = children
+        self.children = children if children is not None else []
         self.props = props
 
     def __repr__(self) -> str:
         return f"HTMLNode(tag={self.tag}, value={self.value}, children={self.children}, props={self.props})"
 
     def to_html(self):
-        raise NotImplementedError
+        if self.tag is None:
+            return self.value
+        props_html = self.props_to_html()
+        if self.children:
+            children_html = "".join(child.to_html() for child in self.children)
+            return f"<{self.tag}{props_html}>{children_html}</{self.tag}>"
+        else:
+            return f"<{self.tag}{props_html}>{self.value}</{self.tag}>"
     
     def props_to_html(self):
         result = ""
@@ -23,6 +30,9 @@ class HTMLNode:
             for key, value in self.props.items():
                 result += f' {key}="{value}"'
         return result
+    
+    def add_child(self, child):
+        self.children.append(child)
 
 class LeafNode(HTMLNode):
     def __init__(self, value, tag=None, props=None):
@@ -59,3 +69,4 @@ class ParentNode(HTMLNode):
         for child in self.children:
             children_html += child.to_html()
         return children_html
+    

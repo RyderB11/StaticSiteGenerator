@@ -43,23 +43,6 @@ def text_node_to_html_node(text_node):
     raise ValueError(f"Invalid text type: {text_node.text_type}")
 
 
-# this code was a little bit of a pain. So this was an odds even situation because apparenty by nature of the way textnodes work then pretty much it will always be evens and odds.
-# so like <b>bold<b>letters<p>this is a string<p> something like that. its always like html i think(whatever this little <> is)  and then a string.
-# old code
-# def split_nodes_delimiter(old_nodes, delimiter, text_type):
-    new_nodes = []
-    for node in old_nodes:
-        if node.text_type == text_type_text:
-            parts = node.text.split(delimiter)
-            for index, part in enumerate(parts):
-                if index % 2 == 0:
-                    new_nodes.append(TextNode(part, text_type_text))
-                else:
-                    new_nodes.append(TextNode(part, text_type))
-        else:
-            new_nodes.append(node) 
-    return new_nodes
-
 # solution code that works
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
     new_nodes = []
@@ -96,24 +79,6 @@ def extract_markdown_links(text):
         tuple_list.append(match_tuple)
     return tuple_list
 
-
-# this was my first attempt, this shit sucked. im  gonna copy paste the answer because this was dumb af to figure out.
-# def split_nodes_image(old_nodes):
-    new_nodes = []
-    string_before = ''
-    string_after = ''
-    for nodes in old_nodes:
-        tuples_list = extract_markdown_images(nodes)
-        for tuples_items in tuples_list:
-            alt_text, image_url = tuples_items  # Unpacking the tuple
-            markdown_image = f"![{alt_text}]({image_url})"  # Constructing the markdown pattern
-            string_before, _, string_after = nodes.partition(markdown_image)
-            if string_before:
-                new_nodes.append(TextNode(string_before))
-            new_nodes.append(TextNode(alt_text, image_url))
-            if string_after:  # Handle remaining text after the last image
-                new_nodes.append(TextNode(string_after, text_type_text))
-    return new_nodes
 
 # here is the right code, some things to note, i havent learned anything about continue or anything. the rest, i honestly was never going to get by myself or with chatgpt or boots. we were talking in circles and i was over it.
 def split_nodes_image(old_nodes):
@@ -169,37 +134,6 @@ def split_nodes_link(old_nodes):
             new_nodes.append(TextNode(original_text, text_type_text))
     return new_nodes
 
-#im currently experiencing brain rot and im struggling, copy pasted this while reading to understand it. i want this exercise done. so im about to push my way through by any means.
-# def text_to_textnodes(text):
-    nodes = [TextNode(text, text_type_text)]
-
-    # Split nodes based on images
-    nodes = split_nodes_image(nodes)
-    print("After splitting nodes based on images:", nodes)
-
-    # Split nodes based on links
-    nodes = split_nodes_link(nodes)
-    print("After splitting nodes based on links:", nodes)
-    
-    # Split the initial text node into smaller text nodes
-    new_nodes = []
-    for node in nodes:
-        if node.text_type == text_type_text:
-            parts = node.text.split('**')
-            for index, part in enumerate(parts):
-                if index % 2 == 0:
-                    new_nodes.append(TextNode(part, text_type_text))
-                else:
-                    new_nodes.append(TextNode(part, text_type_bold))  # Set text_type to bold
-        else:
-            new_nodes.append(node)
-    nodes = new_nodes
-
-    nodes = split_nodes_delimiter(nodes, "*", text_type_italic)
-    nodes = split_nodes_delimiter(nodes, "`", text_type_code)  
-    print("After splitting nodes based on other delimiters:", nodes)
-    
-    return nodes
 
 
 def text_to_textnodes(text):
@@ -214,5 +148,4 @@ def text_to_textnodes(text):
 def markdown_to_blocks(markdown):
     blocks = markdown.split('\n\n')
     blocks = [block.strip() for block in blocks if block.strip()]
-    print(blocks)
     return blocks
