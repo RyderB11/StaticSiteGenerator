@@ -1,6 +1,9 @@
 from textnode import TextNode
+from markdown_to_html import markdown_to_html_node
+from htmlnode import to_html
 import os
 import shutil
+
 
 def copy_directory(src, dst):
     # Ensure the destination directory exists
@@ -18,6 +21,35 @@ def copy_directory(src, dst):
         elif os.path.isdir(src_path):  # Check if the item is a directory
             copy_directory(src_path, dst_path)  # If so, recurse into the directory
             print(f"Copied directory: {src_path} to {dst_path}")
+
+def extract_title(markdown):
+    for line in markdown.split('\n'):
+        if line.startswith("\#"):
+            return line[2:]
+        raise Exception("No h1 header found in the markdown content!")
+    
+
+def generate_page(from_path, template_path, dest_path):
+    print(f'Generating page from {from_path} to {dest_path} using {template_path}')
+
+    with open(from_path, 'r') as file:
+        markdown_content = file.read()
+
+    with open(template_path, 'r') as file:
+        template_content = file.read()
+
+    html_content = markdown_to_html_node(markdown_content).to_html()
+
+    title = extract_title(markdown_content)
+
+    new_content = template_content.replace('{{ Title }}', title).replace('{{ Content }}', html_content)
+
+    os.makedirs(os.path.dirname(dest_path), exist_ok = True)
+    with open(dest_path, 'W') as file:
+        file.write(new_content)
+
+
+
 
 def main():
     # Dummy values for testing TextNode
